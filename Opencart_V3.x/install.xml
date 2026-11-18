@@ -17,7 +17,15 @@
 				} else {
 				
 					if(isset($this->request->cookie['recently_viewed']) && !empty($this->request->cookie['recently_viewed'])) {
-						$recently_viewed = unserialize(base64_decode($this->request->cookie['recently_viewed']));
+						$recently_viewed = array();
+						// the cookie is controlled by the visitor: only unserialize what this module wrote (integer keys, dates), never objects
+						$rv_raw = base64_decode($this->request->cookie['recently_viewed'], true);
+						if ($rv_raw !== false && strlen($rv_raw) < 8192 && preg_match('/^a:(\d+):\{(i:\d+;s:19:"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}";)*\}$/', $rv_raw, $rv_m) && preg_match_all('/i:\d+;s:19:"/', $rv_raw) === (int)$rv_m[1]) {
+							$rv_data = unserialize($rv_raw);
+							if (is_array($rv_data)) {
+								$recently_viewed = $rv_data;
+							}
+						}
 						$recently_viewed[$product_info['product_id']] = date("Y-m-d H:i:s");
 						// sort by in recent viewed order
 						uasort($recently_viewed, function($a, $b){ return strtotime($a) > strtotime($b); });

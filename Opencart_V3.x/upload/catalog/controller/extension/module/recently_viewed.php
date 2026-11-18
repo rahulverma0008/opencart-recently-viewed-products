@@ -1,5 +1,30 @@
 <?php
 class ControllerExtensionModuleRecentlyViewed extends Controller {
+	/**
+	 * Recently viewed products of the visitor from the cookie (product_id => date).
+	 *
+	 * The cookie is controlled by the visitor, it must never be unserialized blindly (PHP object injection). It is only
+	 * unserialized when it has exactly the shape this module writes: integer keys and dates of 19 characters.
+	 * Nothing else (no object, no other type) can pass this check, on any PHP version.
+	 */
+	private function getRecentlyViewedFromCookie() {
+		$recently_viewed = array();
+
+		if (isset($this->request->cookie['recently_viewed']) && !empty($this->request->cookie['recently_viewed'])) {
+			$raw = base64_decode($this->request->cookie['recently_viewed'], true);
+
+			if ($raw !== false && strlen($raw) < 8192 && preg_match('/^a:(\d+):\{(i:\d+;s:19:"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}";)*\}$/', $raw, $matches) && preg_match_all('/i:\d+;s:19:"/', $raw) === (int)$matches[1]) {
+				$data = unserialize($raw);
+
+				if (is_array($data)) {
+					$recently_viewed = $data;
+				}
+			}
+		}
+
+		return $recently_viewed;
+	}
+
 	public function index($setting) {
 		static $module = 0;
 		
@@ -39,7 +64,7 @@ class ControllerExtensionModuleRecentlyViewed extends Controller {
 			
 			/* if user is logged in then save all recently_viewed products to database if available in cookie and then clear the cookie */
 			if(isset($this->request->cookie['recently_viewed']) && !empty($this->request->cookie['recently_viewed'])) {
-				$recently_viewed = unserialize(base64_decode($this->request->cookie['recently_viewed']));
+				$recently_viewed = $this->getRecentlyViewedFromCookie();
 				// sort by in recent viewed order
 				uasort($recently_viewed, function($a, $b){ return strtotime($a) < strtotime($b); });
 				foreach($recently_viewed as $k=>$v){
@@ -56,7 +81,7 @@ class ControllerExtensionModuleRecentlyViewed extends Controller {
 				}
 			}
 		} else if(isset($this->request->cookie['recently_viewed']) && !empty($this->request->cookie['recently_viewed'])) {
-			$recently_viewed = unserialize(base64_decode($this->request->cookie['recently_viewed']));
+			$recently_viewed = $this->getRecentlyViewedFromCookie();
 			// sort by in recent viewed order
 			uasort($recently_viewed, function($a, $b){ return strtotime($a) < strtotime($b); });
 
@@ -79,7 +104,11 @@ class ControllerExtensionModuleRecentlyViewed extends Controller {
 			foreach ($results as $result) {
 				
 				$result = $this->model_catalog_product->getProduct($result);
-				
+
+				if (!$result) {
+					continue;
+				}
+
 				if ($result['image']) {
 					$image = $this->model_tool_image->resize($result['image'], $setting['width'], $setting['height']);
 				} else {

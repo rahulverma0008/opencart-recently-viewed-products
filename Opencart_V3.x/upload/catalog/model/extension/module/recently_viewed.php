@@ -2,7 +2,7 @@
 class ModelExtensionModuleRecentlyViewed extends Model {
 
 	public function getRecentlyViewedProducts($customer_id, $limit, $current_product_id){
-		$query = $this->db->query("SELECT product_id FROM `".DB_PREFIX."customer_product_viewed` WHERE `customer_id`='".(int)$customer_id."' AND product_id<>'".(int)$current_product_id."' ORDER BY viewed_on DESC LIMIT ".$limit);
+		$query = $this->db->query("SELECT product_id FROM `".DB_PREFIX."customer_product_viewed` WHERE `customer_id`='".(int)$customer_id."' AND product_id<>'".(int)$current_product_id."' ORDER BY viewed_on DESC LIMIT ".(int)$limit);
 		return $query->rows;
 	}
 	
