@@ -1,0 +1,91 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-recently-viewed" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form-recently-viewed" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <div class="row mb-3">
+            <label for="input-name" class="col-sm-2 col-form-label">{{ entry_name }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="name" value="{{ name }}" placeholder="{{ entry_name }}" id="input-name" class="form-control"/>
+              <div id="error-name" class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ entry_title }}</label>
+            <div class="col-sm-10">
+              {% for language in languages %}
+                <div class="input-group mb-1">
+                  <span class="input-group-text"><img src="{{ language.image }}" title="{{ language.name }}"/></span>
+                  <input type="text" name="title[{{ language.language_id }}]" value="{{ title[language.language_id] ?? '' }}" placeholder="{{ entry_title }}" id="input-title-{{ language.language_id }}" class="form-control"/>
+                </div>
+                <div id="error-title-{{ language.language_id }}" class="invalid-feedback"></div>
+              {% endfor %}
+              <div class="form-text">{{ help_title }}</div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="input-limit" class="col-sm-2 col-form-label">{{ entry_limit }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="limit" value="{{ limit }}" placeholder="{{ entry_limit }}" id="input-limit" class="form-control"/>
+              <div id="error-limit" class="invalid-feedback"></div>
+              <div class="form-text">{{ help_limit }}</div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="input-width" class="col-sm-2 col-form-label">{{ entry_width }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="width" value="{{ width }}" placeholder="{{ entry_width }}" id="input-width" class="form-control"/>
+              <div id="error-width" class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="input-height" class="col-sm-2 col-form-label">{{ entry_height }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="height" value="{{ height }}" placeholder="{{ entry_height }}" id="input-height" class="form-control"/>
+              <div id="error-height" class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input type="hidden" name="status" value="0"/>
+                <input type="checkbox" name="status" value="1" id="input-status" class="form-check-input"{% if status %} checked{% endif %}/>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+// a module which has just been created is edited from now on (saving again must not create a second one)
+$(document).ajaxComplete(function (event, xhr) {
+    try {
+        var json = JSON.parse(xhr.responseText);
+
+        if (json.module_id && !/module_id=/.test($('#form-recently-viewed').attr('action'))) {
+            $('#form-recently-viewed').attr('action', $('#form-recently-viewed').attr('action') + '&module_id=' + json.module_id);
+        }
+    } catch (e) {
+    }
+});
+//--></script>
+{{ footer }}
